@@ -1,0 +1,96 @@
+
+{% extends 'base.html' %}
+
+{% block title %}
+Create Session | SmartAttend AI
+{% endblock %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <div class="page-header">
+        <div>
+            <h2>Create Attendance Session</h2>
+            <p>Schedule a new classroom attendance session.</p>
+        </div>
+
+        <a href="{% url 'session_list' %}" class="sa-btn sa-btn-secondary">
+            View Sessions
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="sa-message {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="page-card sa-form">
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="sa-form-group">
+                <label>Select Class</label>
+
+                <select name="class_id" required>
+                    <option value="">Choose a class</option>
+
+                    {% for class in classes %}
+                        <option value="{{ class.id }}">
+                            {{ class.subject.name }} -
+                            Section {{ class.section }}
+                        </option>
+                    {% empty %}
+                        <option value="">No assigned classes</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="sa-form-group">
+                <label>Date</label>
+                <input type="date" name="date" required>
+            </div>
+
+            <div class="sa-form-group">
+                <label>Start Time</label>
+                <input type="time" name="start_time" required>
+            </div>
+
+            <div class="sa-form-group">
+                <label>End Time</label>
+                <input type="time" name="end_time" required>
+            </div>
+
+            <div class="sa-form-group">
+                <label>Grace Period</label>
+
+                <select name="grace_period" required>
+                    <option value="0">No grace period</option>
+                    <option value="5">5 minutes</option>
+                    <option value="10" selected>10 minutes</option>
+                    <option value="15">15 minutes</option>
+                    <option value="20">20 minutes</option>
+                    <option value="30">30 minutes</option>
+                </select>
+
+                <small class="sa-form-help">
+                    Students arriving after this period
+                    will be marked late.
+                </small>
+            </div>
+
+            <button type="submit" class="sa-btn sa-btn-primary">
+                Create Attendance Session
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

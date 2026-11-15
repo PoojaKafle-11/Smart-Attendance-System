@@ -1,0 +1,112 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Attendance Sessions | SmartAttend AI{% endblock %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <div class="page-header">
+        <div>
+            <h2>Attendance Sessions</h2>
+            <p>Manage and monitor your classroom sessions.</p>
+        </div>
+
+        <a href="{% url 'create_session' %}" class="sa-btn sa-btn-primary">
+            + Create Session
+        </a>
+    </div>
+
+    <div class="session-grid">
+
+        {% for session in sessions %}
+
+        <div class="session-card">
+
+            <div class="session-card-top">
+                <div class="session-icon">📚</div>
+
+                <span class="sa-status {{ session.status }}">
+                    {{ session.get_status_display }}
+                </span>
+            </div>
+
+            <h3>{{ session.class_obj }}</h3>
+
+            <p class="session-subtitle">Attendance Session</p>
+
+            <div class="session-details">
+
+                <div class="session-detail">
+                    <span>📅 Date</span>
+                    <strong>{{ session.date }}</strong>
+                </div>
+
+                <div class="session-detail">
+                    <span>🕒 Start Time</span>
+                    <strong>{{ session.start_time }}</strong>
+                </div>
+
+                <div class="session-detail">
+                    <span>🕒 End Time</span>
+                    <strong>{{ session.end_time }}</strong>
+                </div>
+
+            </div>
+
+            <div class="session-card-actions">
+
+                {% if session.status == 'scheduled' %}
+
+                    <form method="POST"
+                          action="{% url 'start_attendance' session.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="sa-btn sa-btn-primary">
+                            Start Attendance →
+                        </button>
+                    </form>
+
+                {% elif session.status == 'active' %}
+
+                    <a href="{% url 'take_attendance' session.id %}"
+                       class="sa-btn sa-btn-primary">
+                        Take Attendance →
+                    </a>
+
+                {% else %}
+
+                    <span class="session-completed">
+                        ✓ Attendance Completed
+                    </span>
+
+                {% endif %}
+
+                <a href="{% url 'attendance_report' session.id %}"
+                   class="sa-btn sa-btn-secondary">
+                    View Report
+                </a>
+
+            </div>
+
+        </div>
+
+        {% empty %}
+
+        <div class="page-card sa-empty">
+            <h3>No Sessions Yet</h3>
+            <p>Create your first attendance session to get started.</p>
+
+            <a href="{% url 'create_session' %}"
+               class="sa-btn sa-btn-primary">
+                Create Session
+            </a>
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

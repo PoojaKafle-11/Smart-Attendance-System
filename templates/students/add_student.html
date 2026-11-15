@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Add Student | SmartAttend AI
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="mb-4">
+
+        <a
+            href="{% url 'students:student_list' %}"
+            class="text-decoration-none"
+        >
+            ← Back to Students
+        </a>
+
+        <h2 class="fw-bold mt-3">
+            Register New Student
+        </h2>
+
+        <p class="text-muted">
+            Add student information to SmartAttend AI.
+        </p>
+
+    </div>
+
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-body p-4">
+
+            <form
+                method="POST"
+                enctype="multipart/form-data"
+            >
+
+                {% csrf_token %}
+
+
+                <div class="row g-4">
+
+
+                    <!-- Student ID -->
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Student ID
+                        </label>
+
+                        <input
+                            type="text"
+                            name="student_id"
+                            class="form-control"
+                            placeholder="e.g. BIM001"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- Name -->
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Full Name
+                        </label>
+
+                        <input
+                            type="text"
+                            name="name"
+                            class="form-control"
+                            placeholder="Enter student's name"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- Email -->
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Email
+                        </label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            class="form-control"
+                            placeholder="student@example.com"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- Phone -->
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Phone
+                        </label>
+
+                        <input
+                            type="text"
+                            name="phone"
+                            class="form-control"
+                            placeholder="98XXXXXXXX"
+                        >
+
+                    </div>
+
+
+                    <!-- Semester -->
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Semester
+                        </label>
+
+                        <select
+                            name="semester"
+                            class="form-select"
+                            required
+                        >
+
+                            <option value="">
+                                Select Semester
+                            </option>
+
+                            <option value="1">1st Semester</option>
+                            <option value="2">2nd Semester</option>
+                            <option value="3">3rd Semester</option>
+                            <option value="4">4th Semester</option>
+                            <option value="5">5th Semester</option>
+                            <option value="6">6th Semester</option>
+                            <option value="7">7th Semester</option>
+                            <option value="8">8th Semester</option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Section -->
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Section
+                        </label>
+
+                        <select
+                            name="section"
+                            class="form-select"
+                            required
+                        >
+
+                            <option value="">
+                                Select Section
+                            </option>
+
+                            <option value="A">
+                                Section A
+                            </option>
+
+                            <option value="B">
+                                Section B
+                            </option>
+
+                            <option value="C">
+                                Section C
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Photo -->
+
+                    <div class="col-12">
+
+                        <label class="form-label">
+                            Profile Photo
+                        </label>
+
+                        <input
+                            type="file"
+                            name="profile_photo"
+                            class="form-control"
+                            accept="image/*"
+                        >
+
+                        <div class="form-text">
+                            Upload a clear photo of the student.
+                        </div>
+
+                    </div>
+
+
+                    <!-- Buttons -->
+
+                    <div class="col-12">
+
+                        <hr>
+
+                        <div class="d-flex gap-2">
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                            >
+                                Register Student
+                            </button>
+
+                            <a
+                                href="{% url 'students:student_list' %}"
+                                class="btn btn-light"
+                            >
+                                Cancel
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

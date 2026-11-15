@@ -1,0 +1,447 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Take Attendance - SmartAttendAI</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background: #f5f7fb;
+        }
+
+        .camera-container {
+            max-width: 700px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        video {
+            width: 100%;
+            max-width: 640px;
+            background: black;
+            border-radius: 8px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 8px 5px;
+            background: #2563eb;
+            color: white;
+        }
+
+        button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        #cameraStatus {
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        #recognitionResult {
+            padding: 15px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            margin-top: 15px;
+            min-height: 35px;
+        }
+
+        #attendanceLog {
+            margin-top: 20px;
+        }
+
+        .student-result {
+            padding: 12px;
+            background: #ecfdf5;
+            border-left: 4px solid #16a34a;
+            margin: 8px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="camera-container">
+
+    <h2>SmartAttendAI - Automatic Attendance</h2>
+
+    <h3>{{ session.class_obj }}</h3>
+
+    <p>Date: {{ session.date }}</p>
+
+    <p>
+        Time: {{ session.start_time }} - {{ session.end_time }}
+    </p>
+
+    <p>Status: {{ session.get_status_display }}</p>
+
+    <hr>
+
+    <h3>Live Face Recognition</h3>
+
+    <form id="csrfForm">
+        {% csrf_token %}
+    </form>
+
+    <video
+        id="cameraFeed"
+        autoplay
+        playsinline>
+    </video>
+
+    <canvas id="captureCanvas" hidden></canvas>
+
+    <br>
+
+    <button type="button" id="startCamera">
+        Start Automatic Attendance
+    </button>
+
+    <button type="button" id="stopCamera" disabled>
+        Stop Camera
+    </button>
+
+    <p id="cameraStatus">
+        Camera is not running.
+    </p>
+
+    <div id="recognitionResult">
+        Waiting for recognition...
+    </div>
+
+    <div id="attendanceLog">
+
+        <h3>Recognized Students</h3>
+
+        <p id="attendanceCount">Students marked: 0</p>
+
+        <div id="studentList"></div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    const video = document.getElementById("cameraFeed");
+
+    const canvas = document.getElementById("captureCanvas");
+
+    const startButton = document.getElementById("startCamera");
+
+    const stopButton = document.getElementById("stopCamera");
+
+    const cameraStatus = document.getElementById("cameraStatus");
+
+    const recognitionResult = document.getElementById("recognitionResult");
+
+    const studentList = document.getElementById("studentList");
+
+    const attendanceCount = document.getElementById("attendanceCount");
+
+    const csrfToken = document.querySelector(
+        '[name=csrfmiddlewaretoken]'
+    ).value;
+
+    const recognitionURL =
+        "{% url 'recognize_and_mark_attendance' session.id %}";
+
+    let cameraStream = null;
+
+    let recognitionInterval = null;
+
+    let isProcessing = false;
+
+    // Keep track of students already recognized in this browser session.
+    const recognizedStudents = new Set();
+
+
+    // =====================================
+    // START CAMERA
+    // =====================================
+
+    startButton.addEventListener("click", async function () {
+
+        try {
+
+            cameraStream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: "user"
+                },
+                audio: false
+            });
+
+            video.srcObject = cameraStream;
+
+            await video.play();
+
+            cameraStatus.textContent =
+                "Camera running. Automatic recognition is active.";
+
+            startButton.disabled = true;
+
+            stopButton.disabled = false;
+
+            // Start automatic recognition every 2.5 seconds.
+            recognitionInterval = setInterval(
+                recognizeAndMark,
+                2500
+            );
+
+        } catch (error) {
+
+            cameraStatus.textContent =
+                "Camera error: " + error.message;
+
+            console.error(error);
+
+        }
+
+    });
+
+
+    // =====================================
+    // STOP CAMERA
+    // =====================================
+
+    stopButton.addEventListener("click", stopCamera);
+
+
+    function stopCamera() {
+
+        if (recognitionInterval) {
+
+            clearInterval(recognitionInterval);
+
+            recognitionInterval = null;
+
+        }
+
+        if (cameraStream) {
+
+            cameraStream.getTracks().forEach(track => track.stop());
+
+            cameraStream = null;
+
+        }
+
+        video.srcObject = null;
+
+        cameraStatus.textContent =
+            "Camera stopped.";
+
+        startButton.disabled = false;
+
+        stopButton.disabled = true;
+
+    }
+
+
+    // =====================================
+    // AUTOMATIC FACE RECOGNITION
+    // =====================================
+
+    async function recognizeAndMark() {
+
+        // Prevent overlapping requests.
+        if (isProcessing || !cameraStream || !video.videoWidth) {
+            return;
+        }
+
+        isProcessing = true;
+
+        try {
+
+            canvas.width = video.videoWidth;
+
+            canvas.height = video.videoHeight;
+
+            const context = canvas.getContext("2d");
+
+            context.drawImage(
+                video,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+
+            // Convert captured frame into JPEG.
+            const blob = await new Promise(resolve => {
+
+                canvas.toBlob(
+                    resolve,
+                    "image/jpeg",
+                    0.90
+                );
+
+            });
+
+            if (!blob) {
+                throw new Error("Could not capture camera frame.");
+            }
+
+
+            // Prepare image for Django.
+            const formData = new FormData();
+
+            formData.append(
+                "image",
+                blob,
+                "camera.jpg"
+            );
+
+
+            // Send image to the existing Django endpoint.
+            const response = await fetch(recognitionURL, {
+
+                method: "POST",
+
+                headers: {
+                    "X-CSRFToken": csrfToken
+                },
+
+                body: formData,
+
+                credentials: "same-origin"
+
+            });
+
+
+            const data = await response.json();
+
+            if (!response.ok) {
+
+                recognitionResult.textContent =
+                    data.message || "Server error: " + response.status;
+
+                if (response.status === 403 || response.status === 404) {
+                    stopCamera();
+                }
+
+                return;
+            }
+
+
+            // =====================================
+            // SUCCESSFUL RECOGNITION
+            // =====================================
+
+            if (data.success) {
+
+                const studentId = String(data.student_id);
+
+                // Ignore repeated display entries.
+                if (recognizedStudents.has(studentId)) {
+                    return;
+                }
+
+                recognizedStudents.add(studentId);
+
+                recognitionResult.textContent =
+                    data.message;
+
+                addStudentToList(data);
+
+                attendanceCount.textContent =
+                    "Students marked: " + recognizedStudents.size;
+
+            } else {
+
+                recognitionResult.textContent =
+                    data.message || "Face not recognized.";
+
+            }
+
+        } catch (error) {
+
+            recognitionResult.textContent =
+                "Recognition error: " + error.message;
+
+            console.error(error);
+
+        } finally {
+
+            isProcessing = false;
+
+        }
+
+    }
+
+
+    // =====================================
+    // DISPLAY RECOGNIZED STUDENT
+    // =====================================
+
+    function addStudentToList(data) {
+
+        const studentCard = document.createElement("div");
+
+        studentCard.className = "student-result";
+
+        const name = document.createElement("strong");
+
+        name.textContent = data.student_name;
+
+        const details = document.createElement("p");
+
+        details.textContent =
+            "ID: " + data.student_id +
+            " | Status: " + data.status;
+
+        const similarity = document.createElement("p");
+
+        similarity.textContent =
+            "Similarity: " + Number(data.similarity).toFixed(3);
+
+        const message = document.createElement("small");
+
+        message.textContent = data.message;
+
+        studentCard.appendChild(name);
+
+        studentCard.appendChild(details);
+
+        studentCard.appendChild(similarity);
+
+        studentCard.appendChild(message);
+
+        studentList.prepend(studentCard);
+
+    }
+
+
+    // =====================================
+    // CLEAN UP CAMERA
+    // =====================================
+
+    window.addEventListener("beforeunload", function () {
+
+        if (recognitionInterval) {
+            clearInterval(recognitionInterval);
+        }
+
+        if (cameraStream) {
+
+            cameraStream.getTracks().forEach(track => track.stop());
+
+        }
+
+    });
+
+</script>
+
+</body>
+</html>

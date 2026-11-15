@@ -1,0 +1,1 @@
+console.log("SmartAttend AI loaded successfully.");

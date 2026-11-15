@@ -1,0 +1,288 @@
+
+{% extends 'base.html' %}
+
+{% block title %}
+Dashboard | SmartAttend AI
+{% endblock %}
+
+{% block content %}
+
+<!-- Topbar -->
+<header class="topbar">
+
+    <div>
+        <h2>Dashboard</h2>
+        <p>Monitor your attendance system</p>
+    </div>
+
+    <div class="topbar-right">
+
+        <button class="notification-btn">
+            🔔
+        </button>
+
+        <div class="profile">
+
+            <div class="profile-avatar">
+                {{ request.user.username|first|upper }}
+            </div>
+
+            <div>
+                <strong>
+                    {{ request.user.get_full_name|default:request.user.username }}
+                </strong>
+                <small>Teacher</small>
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<!-- Welcome Section -->
+<section class="welcome-card">
+
+    <div>
+
+        <span class="welcome-label">
+            SMARTATTEND AI
+        </span>
+
+        <h1>
+            Welcome, {{ request.user.first_name|default:request.user.username }} 👋
+        </h1>
+
+        <p>
+            Here's what's happening with attendance today.
+        </p>
+
+    </div>
+
+    <div class="welcome-icon">
+        🤖
+    </div>
+
+</section>
+
+
+<!-- Statistics -->
+<section class="stats-grid">
+
+    <div class="stat-card">
+
+        <div class="stat-icon blue">
+            👥
+        </div>
+
+        <div>
+            <span>Total Students</span>
+            <h2>{{ total_students|default:0 }}</h2>
+            <small>Registered students</small>
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon green">
+            ✓
+        </div>
+
+        <div>
+            <span>Present Today</span>
+            <h2>{{ present_today|default:0 }}</h2>
+            <small>Students present</small>
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon red">
+            !
+        </div>
+
+        <div>
+            <span>Absent Today</span>
+            <h2>{{ absent_today|default:0 }}</h2>
+            <small>Students absent</small>
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon purple">
+            %
+        </div>
+
+        <div>
+            <span>Attendance Rate</span>
+            <h2>{{ attendance_rate|default:0 }}%</h2>
+            <small>Today's rate</small>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- Quick Actions -->
+<section class="quick-section">
+
+    <div class="section-heading">
+
+        <div>
+            <h3>Quick Actions</h3>
+            <p>Frequently used features</p>
+        </div>
+
+    </div>
+
+
+    <div class="quick-grid">
+
+        <a href="{% url 'create_session' %}" class="quick-card">
+
+            <div class="quick-icon">
+                ➕
+            </div>
+
+            <div>
+                <h4>Create Session</h4>
+                <p>Create a new attendance session</p>
+            </div>
+
+        </a>
+
+
+        <a href="{% url 'session_list' %}" class="quick-card">
+
+            <div class="quick-icon">
+                📷
+            </div>
+
+            <div>
+                <h4>Start Attendance</h4>
+                <p>Manage face recognition sessions</p>
+            </div>
+
+        </a>
+
+
+        <a href="{% url 'students:student_list' %}" class="quick-card">
+
+            <div class="quick-icon">
+                👤
+            </div>
+
+            <div>
+                <h4>View Students</h4>
+                <p>Manage registered students</p>
+            </div>
+
+        </a>
+
+
+        <a href="{% url 'session_list' %}" class="quick-card">
+
+            <div class="quick-icon">
+                📊
+            </div>
+
+            <div>
+                <h4>Attendance Reports</h4>
+                <p>View attendance records</p>
+            </div>
+
+        </a>
+
+    </div>
+
+</section>
+
+
+<!-- Attendance Management -->
+<section class="content-card">
+
+    <div class="section-heading">
+
+        <div>
+            <h3>Attendance Management</h3>
+
+            <p>
+                Manage your classroom attendance
+                using AI face recognition.
+            </p>
+
+        </div>
+
+        <a href="{% url 'session_list' %}" class="view-btn">
+            View Sessions
+        </a>
+
+    </div>
+
+
+    <div class="class-table">
+
+        <div class="table-row">
+
+            <span>Create a Session</span>
+
+            <span>
+                Schedule a new class attendance session.
+            </span>
+
+            <span>
+                <a href="{% url 'create_session' %}">
+                    Create
+                </a>
+            </span>
+
+        </div>
+
+
+        <div class="table-row">
+
+            <span>Manage Sessions</span>
+
+            <span>
+                Start and manage active attendance sessions.
+            </span>
+
+            <span>
+                <a href="{% url 'session_list' %}">
+                    Open
+                </a>
+            </span>
+
+        </div>
+
+
+        <div class="table-row">
+
+            <span>View Reports</span>
+
+            <span>
+                Check Present, Late and Absent records.
+            </span>
+
+            <span>
+                <a href="{% url 'session_list' %}">
+                    View
+                </a>
+            </span>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

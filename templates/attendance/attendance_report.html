@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Attendance Report | SmartAttend AI
+{% endblock %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <!-- Page Header -->
+    <div class="report-header">
+
+        <div>
+            <span class="report-label">SMARTATTEND AI</span>
+            <h2>Attendance Report</h2>
+            <p>View and monitor student attendance records.</p>
+        </div>
+
+        <a href="{% url 'session_list' %}" class="report-back-btn">
+            ← Back to Sessions
+        </a>
+
+    </div>
+
+
+    <!-- Session Information -->
+    <div class="report-session-card">
+
+        <div class="report-session-icon">
+            📚
+        </div>
+
+        <div class="report-session-info">
+
+            <h3>{{ session.class_obj }}</h3>
+
+            <div class="report-session-details">
+                <span>📅 {{ session.date }}</span>
+                <span>🕒 {{ session.start_time|time:"h:i A" }}</span>
+                <span>🏁 {{ session.end_time|time:"h:i A" }}</span>
+            </div>
+
+        </div>
+
+    </div>
+
+<!-- Attendance Summary Cards -->
+<div class="report-summary-grid">
+
+    <div class="report-summary-card">
+        <div class="summary-icon summary-blue">👥</div>
+        <div>
+            <span>Total Students</span>
+            <h2>{{ total_students }}</h2>
+        </div>
+    </div>
+
+    <div class="report-summary-card">
+        <div class="summary-icon summary-green">✓</div>
+        <div>
+            <span>Present</span>
+            <h2>{{ present_count }}</h2>
+        </div>
+    </div>
+
+    <div class="report-summary-card">
+        <div class="summary-icon summary-orange">⏰</div>
+        <div>
+            <span>Late</span>
+            <h2>{{ late_count }}</h2>
+        </div>
+    </div>
+
+    <div class="report-summary-card">
+        <div class="summary-icon summary-red">!</div>
+        <div>
+            <span>Absent</span>
+            <h2>{{ absent_count }}</h2>
+        </div>
+    </div>
+
+</div>
+
+<div class="report-rate-card">
+    <div>
+        <span>Overall Attendance Rate</span>
+        <h2>{{ attendance_rate }}%</h2>
+    </div>
+    <div class="report-rate-track">
+        <div class="report-rate-fill"
+             style="width: {{ attendance_rate }}%;">
+        </div>
+    </div>
+</div>
+    <!-- Attendance Table -->
+    <div class="report-table-card">
+
+        <div class="report-table-header">
+
+            <div>
+                <h3>Student Attendance Records</h3>
+                <p>Detailed attendance information for this session.</p>
+            </div>
+
+            <span class="report-count">
+                {{ report|length }} Records
+            </span>
+
+        </div>
+
+
+        <div class="table-responsive">
+
+            <table class="table report-table align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Student ID</th>
+                        <th>Status</th>
+                        <th>Marked At</th>
+                        <th>Confidence</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for item in report %}
+
+                    <tr>
+
+                        <td>
+                            <div class="report-student">
+                                <div class="report-student-avatar">
+                                    {{ item.student.name|first|upper }}
+                                </div>
+
+                                <strong>{{ item.student.name }}</strong>
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="report-student-id">
+                                {{ item.student.student_id }}
+                            </span>
+                        </td>
+
+                        <td>
+
+                            {% if item.status|lower == 'present' %}
+
+                                <span class="status-badge status-present">
+                                    ● Present
+                                </span>
+
+                            {% elif item.status|lower == 'late' %}
+
+                                <span class="status-badge status-late">
+                                    ● Late
+                                </span>
+
+                            {% elif item.status|lower == 'absent' %}
+
+                                <span class="status-badge status-absent">
+                                    ● Absent
+                                </span>
+
+                            {% else %}
+
+                                <span class="status-badge status-other">
+                                    {{ item.status|title }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+                            {% if item.marked_at %}
+                                {{ item.marked_at|time:"h:i A" }}
+                            {% else %}
+                                <span class="report-muted">Not marked</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if item.confidence != None %}
+                                <strong>{{ item.confidence|floatformat:2 }}</strong>
+                            {% else %}
+                                <span class="report-muted">-</span>
+                            {% endif %}
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+                        <td colspan="5">
+
+                            <div class="report-empty">
+
+                                <div>📋</div>
+
+                                <h4>No Attendance Records</h4>
+
+                                <p>
+                                    There are currently no student records
+                                    for this attendance session.
+                                </p>
+
+                            </div>
+
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
